@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Ocean Juice World — Peel the Fruit Menu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal-deep:#082f2f;
+    --teal:#0e7a78;
+    --yellow:#ffc72c;
+    --cream:#fff9ec;
+    --ink:#062727;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;height:100%;
+    background:radial-gradient(ellipse at 50% 0%, var(--teal) 0%, var(--teal-deep) 70%);
+    font-family:'Poppins',sans-serif;
+    color:var(--cream);
+    overflow:hidden;
+  }
+  .app{
+    height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:20px;
+    text-align:center;
+  }
+  .logo{
+    width:clamp(96px,26vw,128px);
+    height:clamp(96px,26vw,128px);
+    border-radius:50%;
+    box-shadow:0 10px 26px rgba(0,0,0,.4);
+    margin-bottom:10px;
+  }
+  .sub{
+    font-size:12px;letter-spacing:1.5px;text-transform:uppercase;opacity:.65;font-weight:600;margin-bottom:34px;
+  }
+
+  /* ---- fruit bowl ---- */
+  .bowl{
+    display:flex;flex-wrap:wrap;justify-content:center;gap:22px;
+    max-width:420px;
+  }
+  .fruit-btn{
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    background:none;border:none;cursor:pointer;
+    color:var(--cream);
+  }
+  .fruit-circle{
+    width:82px;height:82px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:38px;
+    box-shadow:0 10px 22px rgba(0,0,0,.35), inset 0 -6px 10px rgba(0,0,0,.15), inset 0 6px 8px rgba(255,255,255,.25);
+    transition:transform .25s;
+    position:relative;
+  }
+  .fruit-btn:active .fruit-circle{transform:scale(.92);}
+  .fruit-label{font-size:12px;font-weight:600;max-width:90px;line-height:1.25;}
+
+  /* ---- peel overlay ---- */
+  .peel-overlay{
+    position:fixed;inset:0;
+    display:none;
+    align-items:center;justify-content:center;
+    background:rgba(4,20,20,.92);
+    z-index:200;
+    padding:20px;
+  }
+  .peel-overlay.open{display:flex;}
+  .peel-close{
+    position:absolute;top:18px;right:18px;
+    background:var(--yellow);color:var(--ink);border:none;
+    width:38px;height:38px;border-radius:50%;font-weight:800;font-size:16px;cursor:pointer;
+    z-index:60;
+  }
+  .peel-title{
+    position:absolute;top:18px;left:18px;
+    display:flex;align-items:center;gap:8px;
+    font-size:15px;font-weight:700;color:var(--yellow);
+    z-index:60;
+  }
+  .peel-title img{
+    width:34px;height:34px;border-radius:50%;
+    box-shadow:0 4px 10px rgba(0,0,0,.4);
+  }
+
+  .peel-stage{
+    perspective:1600px;
+    width:min(78vw,300px);
+    height:min(76vh,420px);
+    position:relative;
+  }
+  .page-window{
+    position:absolute;inset:0;
+    border-radius:16px;
+    overflow:hidden;
+    background:#111;
+    box-shadow:0 20px 50px rgba(0,0,0,.5);
+    z-index:1;
+    cursor:zoom-in;
+  }
+  .page-window img{
+    width:100%;height:100%;object-fit:cover;object-position:top center;
+    display:block;
+  }
+  .page-nav{
+    position:absolute;bottom:8px;left:0;right:0;
+    display:flex;align-items:center;justify-content:center;gap:12px;
+    z-index:40;
+  }
+  .page-nav button{
+    background:rgba(0,0,0,.5);color:var(--cream);border:1px solid rgba(255,255,255,.3);
+    width:30px;height:30px;border-radius:50%;font-weight:800;cursor:pointer;
+  }
+  .page-nav .lbl{
+    background:rgba(0,0,0,.5);padding:5px 12px;border-radius:14px;font-size:11.5px;font-weight:700;
+  }
+
+  .half{
+    position:absolute;top:0;bottom:0;width:52%;
+    transform-style:preserve-3d;
+    transition:transform .8s cubic-bezier(.5,0,.2,1);
+    z-index:20;
+  }
+  .half.left{left:0;transform-origin:left center;border-radius:16px 60px 60px 16px / 16px 50% 50% 16px;}
+  .half.right{right:0;transform-origin:right center;border-radius:60px 16px 16px 60px / 50% 16px 16px 50%;}
+  .half .skin{
+    position:absolute;inset:0;
+    border-radius:inherit;
+    box-shadow:inset 0 0 30px rgba(0,0,0,.25), 0 10px 24px rgba(0,0,0,.4);
+  }
+  .half .rim{
+    position:absolute;top:6%;bottom:6%;width:14%;
+    background:linear-gradient(90deg, rgba(255,255,255,.65), rgba(255,255,255,.15));
+    border-radius:30px;
+  }
+  .half.left .rim{right:2%;}
+  .half.right .rim{left:2%;}
+
+  .peel-stage.open .half.left{transform:rotateY(-115deg);}
+  .peel-stage.open .half.right{transform:rotateY(115deg);}
+
+  .hint{
+    position:absolute;bottom:-34px;left:0;right:0;
+    text-align:center;font-size:11px;opacity:.6;
+  }
+
+  /* lightbox */
+  .lightbox{
+    position:fixed;inset:0;background:rgba(4,20,20,.96);
+    display:none;align-items:center;justify-content:center;z-index:999;
+    padding:16px;
+  }
+  .lightbox.open{display:flex;}
+  .lightbox img{max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.6);}
+  .lightbox-close{
+    position:absolute;top:16px;right:18px;
+    background:var(--yellow);color:var(--ink);border:none;
+    width:36px;height:36px;border-radius:50%;font-weight:800;font-size:16px;cursor:pointer;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <img class="logo" src="/images/Logo_The_Ocean_Juice_World.png" alt="The Ocean Juice World logo">
+  <div class="sub">pick a fruit to open its menu</div>
+  <div class="bowl" id="bowl"></div>
+</div>
+
+<div class="peel-overlay" id="peelOverlay">
+  <button class="peel-close" id="peelClose">✕</button>
+  <div class="peel-title" id="peelTitle"><img src="/images/Logo_The_Ocean_Juice_World.png" alt="logo"><span id="peelTitleText"></span></div>
+  <div class="peel-stage" id="peelStage">
+    <div class="page-window" id="pageWindow">
+      <img id="pageImg" src="/images/Logo_The_Ocean_Juice_World.png" alt="menu page">
+    </div>
+    <div class="half left"><div class="skin" id="skinLeft"></div><div class="rim"></div></div>
+    <div class="half right"><div class="skin" id="skinRight"></div><div class="rim"></div></div>
+    <div class="page-nav" id="pageNav">
+      <button id="pPrev">‹</button>
+      <span class="lbl"><span id="pLabel">1</span>/<span id="pTotal">1</span></span>
+      <button id="pNext">›</button>
+    </div>
+    <div class="hint">tap the page to zoom</div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lbClose">✕</button>
+  <img id="lbImg" src="/images/Logo_The_Ocean_Juice_World.png" alt="menu page">
+</div>
+</body>
+<script>
+const pages = [
+  // Juice Menu (0-7)
+  '/images/1_JuiceMenu/1_JuiceMenu_pages-0001.jpg',
+  '/images/1_JuiceMenu/1_JuiceMenu_pages-0002.jpg',
+  '/images/1_JuiceMenu/1_JuiceMenu_pages-0003.jpg',
+  '/images/1_JuiceMenu/1_JuiceMenu_pages-0004.jpg',
+  '/images/1_JuiceMenu/1_JuiceMenu_pages-0005.jpg',
+  '/images/1_JuiceMenu/1_JuiceMenu_pages-0006.jpg',
+  '/images/1_JuiceMenu/1_JuiceMenu_pages-0007.jpg',
+  '/images/1_JuiceMenu/1_JuiceMenu_pages-0008.jpg',
+  // Thick Shake Menu (8-17)
+  '/images/2_Thick_Shake_Menu/2_ShakeMenu_page-0001.jpg',
+  '/images/2_Thick_Shake_Menu/2_ShakeMenu_page-0002.jpg',
+  '/images/2_Thick_Shake_Menu/2_ShakeMenu_page-0003.jpg',
+  '/images/2_Thick_Shake_Menu/2_ShakeMenu_page-0004.jpg',
+  '/images/2_Thick_Shake_Menu/2_ShakeMenu_page-0005.jpg',
+  '/images/2_Thick_Shake_Menu/2_ShakeMenu_page-0006.jpg',
+  '/images/2_Thick_Shake_Menu/2_ShakeMenu_page-0007.jpg',
+  '/images/2_Thick_Shake_Menu/2_ShakeMenu_page-0008.jpg',
+  '/images/2_Thick_Shake_Menu/2_ShakeMenu_page-0009.jpg',
+  '/images/2_Thick_Shake_Menu/2_ShakeMenu_page-0010.jpg',
+  // Natural Juices & Shots Menu (18-21)
+  '/images/3_100_Juice_and_Shots_Menu/3_100JuiceShotsMenu-0001.jpg',
+  '/images/3_100_Juice_and_Shots_Menu/3_100JuiceShotsMenu-0002.jpg',
+  '/images/3_100_Juice_and_Shots_Menu/3_100JuiceShotsMenu-0003.jpg',
+  '/images/3_100_Juice_and_Shots_Menu/3_100JuiceShotsMenu-0004.jpg'
+];
+
+const categories = [
+  { key:'juice', emoji:'🍊', label:'Juice Menu', c1:'#ffb84d', c2:'#e6600a', pageIdx:[0,1,2,3,4,5,6,7] },
+  { key:'shake', emoji:'🥤', label:'Thick Shake Menu', c1:'#ff8fa3', c2:'#c81e3a', pageIdx:[8,9,10,11,12,13,14,15,16,17] },
+  { key:'natural', emoji:'🍓', label:'Natural Juices & Shots Menu', c1:'#a9d66b', c2:'#33691e', pageIdx:[18,19,20,21] }
+];
+
+const bowl = document.getElementById('bowl');
+categories.forEach(cat=>{
+  const btn = document.createElement('button');
+  btn.className = 'fruit-btn';
+  btn.innerHTML = `<div class="fruit-circle" style="background:radial-gradient(circle at 35% 30%, ${cat.c1}, ${cat.c2})">${cat.emoji}</div><div class="fruit-label">${cat.label}</div>`;
+  btn.addEventListener('click', ()=> openCategory(cat));
+  bowl.appendChild(btn);
+});
+
+let activeCat = null;
+let pIndex = 0;
+
+const peelOverlay = document.getElementById('peelOverlay');
+const peelStage = document.getElementById('peelStage');
+const peelTitle = document.getElementById('peelTitle');
+const skinLeft = document.getElementById('skinLeft');
+const skinRight = document.getElementById('skinRight');
+const pageImg = document.getElementById('pageImg');
+const pLabel = document.getElementById('pLabel');
+const pTotal = document.getElementById('pTotal');
+const pageNav = document.getElementById('pageNav');
+
+function openCategory(cat){
+  activeCat = cat;
+  pIndex = 0;
+  document.getElementById('peelTitleText').textContent = cat.label;
+  skinLeft.style.background = `linear-gradient(100deg, ${cat.c2}, ${cat.c1})`;
+  skinRight.style.background = `linear-gradient(280deg, ${cat.c2}, ${cat.c1})`;
+  pTotal.textContent = cat.pageIdx.length;
+  pageNav.style.display = cat.pageIdx.length > 1 ? 'flex' : 'none';
+  updatePageImg();
+  peelOverlay.classList.add('open');
+  peelStage.classList.remove('open');
+  // force reflow then open peel for animation
+  requestAnimationFrame(()=> requestAnimationFrame(()=> peelStage.classList.add('open')));
+}
+
+function updatePageImg(){
+  const idx = activeCat.pageIdx[pIndex];
+  pageImg.src = pages[idx];
+  pLabel.textContent = pIndex+1;
+}
+
+document.getElementById('pPrev').addEventListener('click', ()=>{
+  if(pIndex>0){ pIndex--; updatePageImg(); }
+});
+document.getElementById('pNext').addEventListener('click', ()=>{
+  if(activeCat && pIndex < activeCat.pageIdx.length-1){ pIndex++; updatePageImg(); }
+});
+
+document.getElementById('pageWindow').addEventListener('click', ()=>{
+  document.getElementById('lbImg').src = pageImg.src;
+  document.getElementById('lightbox').classList.add('open');
+});
+document.getElementById('lbClose').addEventListener('click', ()=>{
+  document.getElementById('lightbox').classList.remove('open');
+});
+document.getElementById('lightbox').addEventListener('click', (e)=>{
+  if(e.target.id === 'lightbox') e.currentTarget.classList.remove('open');
+});
+
+document.getElementById('peelClose').addEventListener('click', closePeel);
+function closePeel(){
+  peelStage.classList.remove('open');
+  setTimeout(()=> peelOverlay.classList.remove('open'), 750);
+}
+peelOverlay.addEventListener('click', (e)=>{
+  if(e.target.id === 'peelOverlay') closePeel();
+});
+</script>
+
+
+</html>

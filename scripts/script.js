@@ -101,10 +101,49 @@ document.getElementById("pNext").addEventListener("click", () => {
   }
 });
 
-document.getElementById("pageWindow").addEventListener("click", () => {
+const pageWindowEl = document.getElementById("pageWindow");
+
+pageWindowEl.addEventListener("click", () => {
   document.getElementById("lbImg").src = pageImg.src;
   document.getElementById("lightbox").classList.add("open");
 });
+
+// Swipe gesture support for mobile (does not affect desktop click-to-zoom)
+let touchStartX = 0;
+let touchStartY = 0;
+let touchMoved = false;
+const SWIPE_THRESHOLD = 40; // min px horizontal movement to count as a swipe
+
+pageWindowEl.addEventListener("touchstart", (e) => {
+  const t = e.changedTouches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+  touchMoved = false;
+}, { passive: true });
+
+pageWindowEl.addEventListener("touchmove", () => {
+  touchMoved = true;
+}, { passive: true });
+
+pageWindowEl.addEventListener("touchend", (e) => {
+  if (!activeCat) return;
+  const t = e.changedTouches[0];
+  const dx = t.clientX - touchStartX;
+  const dy = t.clientY - touchStartY;
+
+  // Only treat as a swipe if horizontal movement dominates and passes the threshold
+  if (touchMoved && Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
+    if (dx < 0 && pIndex < activeCat.pageIdx.length - 1) {
+      pIndex++;
+      updatePageImg();
+    } else if (dx > 0 && pIndex > 0) {
+      pIndex--;
+      updatePageImg();
+    }
+    // Prevent the click-to-zoom handler from firing right after a swipe
+    e.preventDefault();
+  }
+}, { passive: false });
 document.getElementById("lbClose").addEventListener("click", () => {
   document.getElementById("lightbox").classList.remove("open");
 });
